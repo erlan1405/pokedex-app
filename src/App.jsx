@@ -1,35 +1,58 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react';
+import './App.css';
+import { getPokemon } from './Api';
+import PokemonCard from './PokemonCard.jsx';
+
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [pokemonData, setPokemonData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const fetchPokemons = async () => {
+    setLoading(true);
+    let pokemonNames = ['pikachu', 'bulbasaur', 'charmander', 'squirtle'];
+    const data = await Promise.all(
+      pokemonNames.map((name) => getPokemon(name))
+    );
+    
+    console.log(data);
+    setPokemonData(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchPokemons();
+  }, []);
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredPokemons = pokemonData.filter(pokemon =>
+    pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div>
+      <h1>Pokedex</h1>
+      <input
+        type="text"
+        placeholder="Search Pokemon"
+        value={searchTerm}
+        onChange={handleSearch}
+      />
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div className="pokemon-list">
+          {filteredPokemons.map((pokemon) => (
+            <PokemonCard key={pokemon.id} pokemon={pokemon} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
-export default App
+export default App;
